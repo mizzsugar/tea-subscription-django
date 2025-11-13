@@ -1,0 +1,40 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}ログイン{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="text-center mb-4">ログイン</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                <label for="{{ form.username.id_for_label }}" class="form-label">ユーザー名</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.username.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.password.id_for_label }}" class="form-label">パスワード</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.password.errors }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">ログイン</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <p class="mb-0">アカウントをお持ちでない方は<a href="{% url 'signup' %}">こちら</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
