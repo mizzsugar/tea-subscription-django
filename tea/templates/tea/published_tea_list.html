@@ -1,29 +1,23 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>お茶一覧</title>
-</head>
-<body>
-    <h1>お茶一覧</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>蒸し度</th>
-                <th>産地</th>
-                <th>名前</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for tea in teas %}
-            <tr>
-                <td>{{ tea.get_steam_type_display }}</td>
-                <td>{{ tea.origin }}</td>
-                <td>{{ tea.name }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+{% extends 'common/base.html' %}
+
+{% block title %}お茶一覧{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-5">お茶一覧</h1>
+    <div class="row">
+        {% for tea in teas %}
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ tea.name }}</h5>
+                    <p class="card-text">{{ tea.description }}</p>
+                    <a href="{% url 'published_tea_detail' tea.id %}" class="btn btn-success">詳細を見る</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
