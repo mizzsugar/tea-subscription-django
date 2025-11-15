@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from tea.models import Tea
+from django.db.models import Count, Exists, OuterRef
+from tea.models import Tea, FavoriteTea
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Count, Exists, OuterRef, Value, BooleanField
 from tea.forms import SignUpForm, SignInForm
 
 
@@ -60,11 +62,44 @@ def signout_view(request):
 
 def published_tea_list(request):
     now = timezone.now()
-    teas = Tea.objects.filter(published_at__isnull=False, published_at__lt=now)
+    teas = Tea.objects.filter(published_at__isnull=False, published_at__lt=now).\
+        annotate(favorites_count=Count('favorited_by'))
+    
+    # ログイン中のユーザーがいいねしているかをアノテーション
+    if request.user.is_authenticated:
+        user_favorite = FavoriteTea.objects.filter(
+            user=request.user,
+            tea=OuterRef('pk')
+        )
+        teas = teas.annotate(is_favorited=Exists(user_favorite))
+    else:
+        # ログインしていない場合はすべてFalse
+        teas = teas.annotate(
+            is_favorited=Value(False, output_field=BooleanField())
+        )
+    
     return render(request, 'tea/published_tea_list.html', {'teas': teas})
 
 
 def published_tea_detail(request, tea_id: int):
+    """お茶詳細ページ"""
     now = timezone.now()
-    tea = get_object_or_404(Tea, id=tea_id, published_at__isnull=False, published_at__lt=now)
+
+    # 1つのお茶だけにアノテーションを適用
+    queryset = Tea.objects.filter(pk=tea_id, published_at__isnull=False, published_at__lt=now).\
+        annotate(favorites_count=Count('favorited_by'))
+    
+    if request.user.is_authenticated:
+        user_favorite = FavoriteTea.objects.filter(
+            user=request.user,
+            tea=OuterRef('pk')
+        )
+        queryset = queryset.annotate(is_favorited=Exists(user_favorite))
+    else:
+        queryset = queryset.annotate(
+            is_favorited=Value(False, output_field=BooleanField())
+        )
+    
+    tea = get_object_or_404(queryset)
+
     return render(request, 'tea/published_tea_detail.html', {'tea': tea})
