@@ -52,3 +52,31 @@ class FavoriteTea(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.tea}"
+
+
+class TeaReview(models.Model):
+    """お茶に対するレビュー"""
+    RATING_CHOICES = [
+        (1, "★☆☆☆☆"),
+        (2, "★★☆☆☆"),
+        (3, "★★★☆☆"),
+        (4, "★★★★☆"),
+        (5, "★★★★★"),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tea_reviews")
+    tea = models.ForeignKey(Tea, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveIntegerField(verbose_name="評価", choices=RATING_CHOICES)
+    content = models.TextField(blank=True, verbose_name="レビュー内容")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="登録日時")
+
+    class Meta:
+        unique_together = ("user", "tea")
+        verbose_name = "レビュー"
+        verbose_name_plural = "レビュー一覧"
+    
+    def __str__(self):
+        return f"{self.user} のレビュー: {self.content[:20]}..."
+    
+    def get_star_display(self):
+        """星表示を返す"""
+        return "★" * self.rating + "☆" * (5 - self.rating)
