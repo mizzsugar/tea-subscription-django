@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
+from .models import TeaReview
+
 
 # カスタムUserモデルを取得
 User = get_user_model()
@@ -64,3 +66,27 @@ class SignInForm(forms.Form):
             'placeholder': 'パスワード'
         })
     )
+
+class ReviewForm(forms.ModelForm):
+    """レビューフォーム"""
+
+    rating = forms.ChoiceField(
+        choices=TeaReview.RATING_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='評価',
+        initial=3,
+    )
+    
+    class Meta:
+        model = TeaReview
+        fields = ['rating', 'content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'レビューを入力してください'
+            }),
+        }
+        labels = {
+            'content': 'レビュー内容',
+        }

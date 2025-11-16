@@ -1,14 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Count, Exists, OuterRef
-from tea.models import Tea, FavoriteTea
+from tea.models import Tea, FavoriteTea, TeaReview
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import reverse
 from django.contrib import messages
 from django.db.models import Count, Exists, OuterRef, Value, BooleanField
-from tea.forms import SignUpForm, SignInForm
+from tea.forms import SignUpForm, SignInForm, ReviewForm
 
 
 def signup_view(request):
@@ -104,7 +104,28 @@ def published_tea_detail(request, tea_id: int):
     
     tea = get_object_or_404(queryset)
 
-    return render(request, 'tea/published_tea_detail.html', {'tea': tea})
+    # レビュー一覧を取得
+    reviews = tea.reviews.select_related('user').all()
+    
+    # ユーザーが既にレビュー済みかチェック
+    user_has_reviewed = False
+    if request.user.is_authenticated:
+        user_has_reviewed = TeaReview.objects.filter(
+            tea=tea,
+            user=request.user
+        ).exists()
+
+    # レビューフォーム
+    review_form = None
+    if request.user.is_authenticated and not user_has_reviewed:
+        review_form = ReviewForm()
+
+    return render(request, 'tea/published_tea_detail.html', {
+        'tea': tea,
+        'reviews': reviews,
+        'user_has_reviewed': user_has_reviewed,
+        'review_form': review_form,
+    })
 
 
 
@@ -152,3 +173,16 @@ def cancel_favorite_tea(request, tea_id):
         })
     
     return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+def add_review(request, tea_id):
+    """お茶のレビューをする"""
+    form = ReviewForm(request.POST)
+    if form.is_valid():
+        review = form.save(commit=False)
+        review.user = request.user
+        review.tea_id = tea_id
+        review.save()
+        messages.success(request, 'レビューが送信されました。')
+        return redirect('published_tea_detail', tea_id=tea_id)

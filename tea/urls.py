@@ -11,4 +11,5 @@ urlpatterns = [
     path('home/', views.home_view, name='home'),
     path("teas/<int:tea_id>/favorite/", views.add_favorite_tea, name="add_favorite_tea"),
     path("teas/<int:tea_id>/cancel_favorite/", views.cancel_favorite_tea, name="cancel_favorite_tea"),
+    path("teas/<int:tea_id>/review/", views.add_review, name="add_review"),
 ]
