@@ -10,7 +10,9 @@
 <ul class="list-group">
 <li class="list-group-item">蒸し度: {{ tea.get_steam_type_display }}</li>
 <li class="list-group-item">産地: {{ tea.origin }}</li>
-<li class="list-group-item">カフェインレス: {{ tea.caffeine_free }}</li>
+{% if tea.caffeine_free %}
+<li class="list-group-item">カフェインレス: ✅</li>
+{% endif %}
 </ul>
 </div>
 </div>
