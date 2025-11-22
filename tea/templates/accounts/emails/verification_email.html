@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h2>{{ user.get_display_name }}様</h2>
+    <p>ご登録ありがとうございます。</p>
+    <p>以下のボタンをクリックして、メールアドレスの確認を完了してください。</p>
+    <p>
+        <a href="{{ verification_url }}" style="background-color: #4CAF50; color: white; padding: 14px 20px; text-decoration: none; display: inline-block;">
+            メールアドレスを確認
+        </a>
+    </p>
+    <p>または、以下のURLをコピーしてブラウザに貼り付けてください:</p>
+    <p>{{ verification_url }}</p>
+    <p><small>このリンクは24時間有効です。</small></p>
+    <hr>
+    <p><small>※このメールに心当たりがない場合は、無視してください。</small></p>
+</body>
+</html>
