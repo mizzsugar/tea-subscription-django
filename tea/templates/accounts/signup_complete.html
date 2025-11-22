@@ -1,0 +1,104 @@
+{% extends 'common/base.html' %}
+{% block title %}仮登録完了{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <!-- アイコン -->
+                    <div class="text-center mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-gradient" 
+                             style="width: 80px; height: 80px;">
+                            <i class="bi bi-envelope-check text-white" style="font-size: 2.5rem;"></i>
+                        </div>
+                    </div>
+
+                    <!-- タイトル -->
+                    <h1 class="text-center fw-bold mb-3">仮登録が完了しました</h1>
+                    <p class="text-center text-muted mb-4">
+                        ご登録ありがとうございます。<br>確認メールをお送りしました。
+                    </p>
+
+                    <!-- メール送信通知ボックス -->
+                    <div class="alert alert-info border-2 border-primary border-dashed mb-4" role="alert">
+                        <div class="text-center">
+                            <i class="bi bi-envelope-fill fs-1 text-primary mb-2 d-block"></i>
+                            <p class="mb-2">
+                                ご登録いただいたメールアドレス宛に<br>
+                                確認メールを送信しました。
+                            </p>
+                            <strong class="text-dark">
+                                メール内のリンクをクリックして登録を完了してください。
+                            </strong>
+                        </div>
+                    </div>
+
+                    <!-- 次のステップ -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-3">
+                                <i class="bi bi-list-check text-primary"></i> 次のステップ
+                            </h5>
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="badge bg-primary rounded-circle me-3" style="width: 28px; height: 28px; line-height: 18px;">1</span>
+                                <div>
+                                    <strong>メールボックスを確認してください</strong><br>
+                                    <small class="text-muted">迷惑メールフォルダもご確認ください</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="badge bg-primary rounded-circle me-3" style="width: 28px; height: 28px; line-height: 18px;">2</span>
+                                <div>
+                                    <strong>メール内の「メールアドレスを確認」ボタンをクリック</strong>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <span class="badge bg-primary rounded-circle me-3" style="width: 28px; height: 28px; line-height: 18px;">3</span>
+                                <div>
+                                    <strong>確認完了後、ログインしてサービスをご利用ください</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 注意事項 -->
+                    <div class="alert alert-warning border-start border-4 border-warning" role="alert">
+                        <h6 class="alert-heading fw-bold">
+                            <i class="bi bi-exclamation-triangle-fill"></i> メールが届かない場合
+                        </h6>
+                        <ul class="mb-0 small">
+                            <li>迷惑メールフォルダをご確認ください</li>
+                            <li>メールアドレスが正しいかご確認ください</li>
+                            <li>数分待ってもメールが届かない場合は、下記から再送信できます</li>
+                        </ul>
+                    </div>
+
+                    <!-- アクションボタン -->
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{% url 'resend_verification' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-arrow-repeat"></i> 確認メールを再送信する
+                        </a>
+                    </div>
+
+                    <div class="text-center">
+                        <hr class="my-3">
+                        <a href="{% url 'signin' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-in-right"></i> ログインページに戻る
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 追加情報 -->
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="bi bi-info-circle"></i> 
+                    確認メールは24時間有効です。有効期限が切れた場合は再送信してください。
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,6 +3,17 @@
 {% block title %}ログイン{% endblock %}
 
 {% block content %}
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {% if 'safe' in message.tags %}
+                {{ message|safe }}
+            {% else %}
+                {{ message }}
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endif %}
 <div class="auth-container">
     <div class="auth-card">
         <h2 class="text-center mb-4">ログイン</h2>
