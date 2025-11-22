@@ -14,7 +14,7 @@
                 <a class="navbar-brand" href="{% url 'published_tea_list' %}">お茶サイト</a>
                 <div class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
-                        <span class="navbar-text me-3"><a href="{% url 'home' %}">{{ user.username }}さん</a></span>
+                        <span class="navbar-text me-3"><a href="{% url 'home' %}">{{ user.nickname }}さん</a></span>
                         <a class="btn btn-outline-light btn-sm" href="{% url 'signout' %}">ログアウト</a>
                     {% else %}
                         <a class="nav-link" href="{% url 'signin' %}">ログイン</a>
