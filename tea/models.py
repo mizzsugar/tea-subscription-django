@@ -82,10 +82,8 @@ class User(AbstractUser):
         help_text="メールアドレスが確認されているかどうか"
     )
     email_verification_token = models.UUIDField(
-        null=True,
-        blank=True,
-        # default=uuid.uuid4,
-        # editable=False,
+        default=uuid.uuid4,
+        editable=False,
         unique=True,
         verbose_name="メール確認トークン"
     )
