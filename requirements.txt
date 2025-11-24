@@ -5,3 +5,5 @@ whitenoise>=6.11
 dj-database-url>=3.0
 dotenv>=0.9
 django-admin-charts>=1.5
+django-anymail>=13.1
+sendgrid>=6.12
