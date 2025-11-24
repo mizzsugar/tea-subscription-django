@@ -133,6 +133,9 @@ class User(AbstractUser):
         expiry_time = self.email_verification_sent_at + timedelta(hours=24)
         return timezone.now() < expiry_time
 
+    class Meta:
+        db_table = "users"
+
 
 class Tea(models.Model):
     """お茶マスタ"""
@@ -156,6 +159,9 @@ class Tea(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        db_table = "teas"
+
 
 class FavoriteTea(models.Model):
     """お気に入りテーブル（ユーザーとお茶の中間テーブル）"""
@@ -170,6 +176,9 @@ class FavoriteTea(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.tea}"
+
+    class Meta:
+        db_table = "favorite_teas"
 
 
 class TeaReview(models.Model):
@@ -191,6 +200,7 @@ class TeaReview(models.Model):
         unique_together = ("user", "tea")
         verbose_name = "レビュー"
         verbose_name_plural = "レビュー一覧"
+        db_table = "tea_reviews"
     
     def __str__(self):
         return f"{self.user} のレビュー: {self.content[:20]}..."
