@@ -146,7 +146,7 @@ class Tea(models.Model):
     ]
 
     name = models.CharField(max_length=100, verbose_name="お茶名")
-    
+    image = models.ImageField(null=True, blank=True, upload_to='photos/')
     steam_type = models.CharField(max_length=20, choices=STEAM_TYPE_CHOICES, verbose_name="蒸し度")
     origin = models.CharField(max_length=100, blank=True, verbose_name="産地")
     description = models.TextField(blank=True, verbose_name="説明")

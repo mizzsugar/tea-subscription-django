@@ -4,12 +4,13 @@
 <div class="container">
 <h1 class="mt-5">お茶一覧</h1>
 <div class="row">
-        {% for tea in teas %}
+    {% for tea in teas %}
 <div class="col-md-4">
 <div class="card mb-4 shadow-sm">
 <div class="card-body">
 <h5 class="card-title">{{ tea.name }}</h5>
 <p class="card-text">{{ tea.description }}</p>
+<img src="{{ tea.image.url }}" alt="{{ tea.name }}" class="card-img-top">
 <div class="d-flex justify-content-between">
 <div><a href="{% url 'published_tea_detail' tea.id %}" class="btn btn-success">詳細を見る</a></div>
 <div>

@@ -3,6 +3,7 @@
 {% block content %}
 <div class="container">
 <h1>{{ tea.name }}</h1>
+<img src="{{ tea.image.url }}" alt="{{ tea.name }}">
 <p>{{ tea.description }}</p>
 <div class="row">
 <div class="col-md-6">
