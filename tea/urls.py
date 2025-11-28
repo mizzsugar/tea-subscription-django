@@ -5,13 +5,6 @@ from tea import views
 urlpatterns = [
     path("", views.published_tea_list, name="published_tea_list"),
     path("teas/<int:tea_id>/", views.published_tea_detail, name="published_tea_detail"),
-    path('signup/', views.signup, name='signup'),
-    path('signin/', views.signin, name='signin'),
-    path('signout/', views.signout, name='signout'),
-    path('verify-email/<uuid:token>/', views.verify_email, name='verify_email'),
-    path('resend-verification/', views.resend_verification_email, name='resend_verification'),
-    path('signup_complete/', views.signup_complete, name='signup_complete'),
-    path('home/', views.home, name='home'),
     path("teas/<int:tea_id>/favorite/", views.add_favorite_tea, name="add_favorite_tea"),
     path("teas/<int:tea_id>/cancel_favorite/", views.cancel_favorite_tea, name="cancel_favorite_tea"),
     path("teas/<int:tea_id>/review/", views.add_review, name="add_review"),
