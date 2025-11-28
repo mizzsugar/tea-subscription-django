@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "anymail",
     'tea',
+    'model',
 ]
 
 MIDDLEWARE = [
@@ -184,7 +185,7 @@ if not DEBUG:
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'tea.User'
+AUTH_USER_MODEL = 'model.User'
 
 # ログイン・ログアウト後のリダイレクト先
 LOGIN_URL = 'signin'

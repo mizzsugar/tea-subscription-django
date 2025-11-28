@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from tea.models import User, Tea, FavoriteTea, TeaReview
+from model.models import User, Tea, FavoriteTea, TeaReview
 
 # Register your models here.
 admin.site.register(Tea)
