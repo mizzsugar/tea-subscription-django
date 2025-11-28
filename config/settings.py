@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "anymail",
     'tea',
     'model',
+    'authentication',
 ]
 
 MIDDLEWARE = [
