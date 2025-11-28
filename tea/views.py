@@ -2,7 +2,7 @@ import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.db.models import Count, Exists, OuterRef
-from tea.models import Tea, FavoriteTea, TeaReview
+from model.models import User, Tea, FavoriteTea, TeaReview
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -11,7 +11,6 @@ from django.contrib import messages
 from django.db.models import Count, Exists, OuterRef, Value, BooleanField
 from tea.forms import GeneralUserRegistrationForm, EmailAuthenticationForm, ReviewForm
 from .utils import send_verification_email
-from tea.models import User
 from django.db import IntegrityError
 
 
