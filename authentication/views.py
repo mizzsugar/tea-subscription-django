@@ -76,7 +76,7 @@ def signup(request):
                         # メール送信失敗時はユーザーを削除
                         user.delete()
                         messages.error(request, '登録処理中にエラーが発生しました。しばらくしてから再度お試しください。')
-                        return render(request, 'accounts/signup.html', {'form': form})
+                        return render(request, 'authentication/signup.html', {'form': form})
                         
                 except IntegrityError:
                     # 同時リクエストなどで重複が発生した場合
@@ -88,7 +88,7 @@ def signup(request):
     else:
         form = GeneralUserRegistrationForm()
     
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'authentication/signup.html', {'form': form})
 
 
 def verify_email(request, token):
@@ -132,12 +132,12 @@ def resend_verification_email(request):
         
         return redirect('resend_verification')
     
-    return render(request, 'accounts/resend_verification.html')
+    return render(request, 'authentication/resend_verification.html')
 
 
 def signup_complete(request):
     """登録完了ページ"""
-    return render(request, 'accounts/signup_complete.html')
+    return render(request, 'authentication/signup_complete.html')
 
 def signin(request):
     """メールアドレスでログイン"""
@@ -164,19 +164,19 @@ def signin(request):
                 messages.error(
                     request, 
                     'メールアドレスの確認が完了していません。'
-                    '<a href="/accounts/resend-verification/">確認メールを再送信</a>',
+                    '<a href="/authentication/resend-verification/">確認メールを再送信</a>',
                     extra_tags='safe'
                 )
     else:
         form = EmailAuthenticationForm()
     
-    return render(request, 'accounts/signin.html', {'form': form})
+    return render(request, 'authentication/signin.html', {'form': form})
 
 
 @login_required
 def home(request):
     """ホーム画面（ログイン必須）"""
-    return render(request, 'accounts/home.html')
+    return render(request, 'authentication/home.html')
 
 
 def signout(request):

@@ -18,11 +18,11 @@ def send_verification_email(user, request):
     
     # メール本文
     subject = 'メールアドレスの確認'
-    message = render_to_string('accounts/emails/verification_email.txt', {
+    message = render_to_string('authentication/emails/verification_email.txt', {
         'user': user,
         'verification_url': verification_url,
     })
-    html_message = render_to_string('accounts/emails/verification_email.html', {
+    html_message = render_to_string('authentication/emails/verification_email.html', {
         'user': user,
         'verification_url': verification_url,
     })
