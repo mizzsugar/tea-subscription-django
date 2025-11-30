@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}注文詳細 - お茶ショップ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'shop:order_list' %}">注文履歴</a></li>
+            <li class="breadcrumb-item active">{{ order.order_number }}</li>
+        </ol>
+    </nav>
+
+    {% if order.status == 'paid' %}
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle-fill"></i> お支払いが完了しました。ご注文ありがとうございます!
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">注文情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>注文番号:</strong><br>
+                            {{ order.order_number }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>注文日時:</strong><br>
+                            {{ order.created_at|date:"Y年m月d日 H:i" }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>ステータス:</strong><br>
+                            {% if order.status == 'paid' %}
+                            <span class="badge bg-success fs-6">支払い完了</span>
+                            {% elif order.status == 'processing' %}
+                            <span class="badge bg-info fs-6">処理中</span>
+                            {% elif order.status == 'shipped' %}
+                            <span class="badge bg-primary fs-6">発送済み</span>
+                            {% elif order.status == 'delivered' %}
+                            <span class="badge bg-success fs-6">配達完了</span>
+                            {% elif order.status == 'cancelled' %}
+                            <span class="badge bg-danger fs-6">キャンセル</span>
+                            {% else %}
+                            <span class="badge bg-warning fs-6">支払い待ち</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>合計金額:</strong><br>
+                            <span class="text-success fs-4">¥{{ order.total_amount|floatformat:0 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">注文内容</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>商品名</th>
+                                    <th>重量</th>
+                                    <th class="text-end">単価</th>
+                                    <th class="text-center">数量</th>
+                                    <th class="text-end">小計</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>{{ item.product.tea.name }}</td>
+                                    <td>{{ item.product.weight }}g</td>
+                                    <td class="text-end">¥{{ item.price|floatformat:0 }}</td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end">¥{{ item.subtotal|floatformat:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end"><strong>合計:</strong></td>
+                                    <td class="text-end"><strong class="text-success">¥{{ order.total_amount|floatformat:0 }}</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">配送先情報</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>お名前:</strong></p>
+                    <p class="mb-3">{{ order.shipping_name }}</p>
+
+                    <p class="mb-1"><strong>郵便番号:</strong></p>
+                    <p class="mb-3">{{ order.shipping_postal_code }}</p>
+
+                    <p class="mb-1"><strong>住所:</strong></p>
+                    <p class="mb-3">{{ order.shipping_address }}</p>
+
+                    <p class="mb-1"><strong>電話番号:</strong></p>
+                    <p class="mb-0">{{ order.shipping_phone }}</p>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <a href="{% url 'shop:order_list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> 注文履歴に戻る
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

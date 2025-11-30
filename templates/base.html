@@ -13,7 +13,10 @@
             <div class="container">
                 <a class="navbar-brand" href="{% url 'published_tea_list' %}">お茶サイト</a>
                 <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3"><a href="{% url 'shop:product_list' %}">商品一覧</a></span>
                     {% if user.is_authenticated %}
+                        <span class="navbar-text me-3"><a href="{% url 'shop:order_list' %}">注文履歴</a></span>
+                        <span class="navbar-text me-3"><a href="{% url 'shop:cart' %}">カート</a></span>
                         <span class="navbar-text me-3"><a href="{% url 'home' %}">{{ user.nickname }}さん</a></span>
                         <a class="btn btn-outline-light btn-sm" href="{% url 'signout' %}">ログアウト</a>
                     {% else %}
@@ -39,6 +42,8 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://js.stripe.com/v3/"></script>
+        {% block extra_js %}{% endblock %}
     </body>
     </html>
 </html>
