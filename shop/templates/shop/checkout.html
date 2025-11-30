@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}お会計 - お茶ショップ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="bi bi-credit-card"></i> お会計
+    </h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">配送先情報</h5>
+                </div>
+                <div class="card-body">
+                    <form id="checkout-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="shipping_name" class="form-label">お名前 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="shipping_name" name="shipping_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="shipping_postal_code" class="form-label">郵便番号 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="shipping_postal_code" name="shipping_postal_code" placeholder="123-4567" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="shipping_address" class="form-label">住所 <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="shipping_phone" class="form-label">電話番号 <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="shipping_phone" name="shipping_phone" placeholder="090-1234-5678" required>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">注文内容</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ item.product.tea.name }}</strong> ({{ item.product.weight }}g)
+                            <span class="text-muted">× {{ item.quantity }}</span>
+                        </div>
+                        <div>¥{{ item.subtotal|floatformat:0 }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">お支払い</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>小計:</span>
+                        <span>¥{{ cart.total_amount|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>送料:</span>
+                        <span>無料</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>合計:</strong>
+                        <strong class="text-success fs-4">¥{{ cart.total_amount|floatformat:0 }}</strong>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Stripeで安全にお支払いいただけます
+                    </div>
+
+                    <button id="checkout-button" class="btn btn-success w-100 btn-lg">
+                        <i class="bi bi-lock-fill"></i> Stripeで支払う
+                    </button>
+                    
+                    <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded'); // これが表示されるか確認
+    
+    const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
+    const checkoutButton = document.getElementById('checkout-button');
+    const checkoutForm = document.getElementById('checkout-form');
+    const errorMessage = document.getElementById('error-message');
+    
+    console.log('checkoutButton:', checkoutButton); // ボタンが取得できているか確認
+    console.log('checkoutForm:', checkoutForm); // フォームが取得できているか確認
+    
+    if (!checkoutButton) {
+        console.error('Checkout button not found!');
+        return;
+    }
+    
+    checkoutButton.addEventListener('click', async () => {
+        console.log('Button clicked!');
+        
+        if (!checkoutForm.checkValidity()) {
+            console.log('Form invalid');
+            checkoutForm.reportValidity();
+            return;
+        }
+
+        checkoutButton.disabled = true;
+        checkoutButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>処理中...';
+
+        const formData = new FormData(checkoutForm);
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch("{% url 'shop:create_checkout_session' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            const result = await stripe.redirectToCheckout({
+                sessionId: data.sessionId
+            });
+
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            errorMessage.textContent = error.message;
+            errorMessage.classList.remove('d-none');
+            checkoutButton.disabled = false;
+            checkoutButton.innerHTML = '<i class="bi bi-lock-fill"></i> Stripeで支払う';
+        }
+    });
+});
+</script>
+{% endblock %}

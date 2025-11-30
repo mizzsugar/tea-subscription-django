@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'tea',
     'model',
     'authentication',
+    'shop',
 ]
 
 MIDDLEWARE = [
@@ -221,3 +222,8 @@ else:
         "SENDGRID_API_KEY": os.environ.get('SENDGRID_API_KEY'),
     }
 
+
+# Stripe設定
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', 'your_stripe_public_key')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'your_stripe_secret_key')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', 'your_stripe_webhook_secret')
