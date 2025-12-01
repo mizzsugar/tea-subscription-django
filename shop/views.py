@@ -14,19 +14,6 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 @login_required
-def product_detail(request, tea_id):
-    """商品詳細"""
-    tea = get_object_or_404(Tea, id=tea_id, published_at__isnull=False)
-    products = tea.products.filter(is_available=True)
-    
-    context = {
-        'tea': tea,
-        'products': products,
-    }
-    return render(request, 'shop/product_detail.html', context)
-
-
-@login_required
 @require_POST
 def add_to_cart(request, product_id):
     """カートに追加"""
@@ -35,11 +22,11 @@ def add_to_cart(request, product_id):
     
     if quantity < 1:
         messages.error(request, '数量は1以上を指定してください')
-        return redirect('shop:product_detail', tea_id=product.tea.id)
+        return redirect('published_tea_detail', tea_id=product.tea.id)
     
     if product.stock < quantity:
         messages.error(request, '在庫が不足しています')
-        return redirect('shop:product_detail', tea_id=product.tea.id)
+        return redirect('published_tea_detail', tea_id=product.tea.id)
     
     # カートを取得または作成
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -56,7 +43,7 @@ def add_to_cart(request, product_id):
         new_quantity = cart_item.quantity + quantity
         if product.stock < new_quantity:
             messages.error(request, '在庫が不足しています')
-            return redirect('shop:product_detail', tea_id=product.tea.id)
+            return redirect('published_tea_detail', tea_id=product.tea.id)
         cart_item.quantity = new_quantity
         cart_item.save()
     

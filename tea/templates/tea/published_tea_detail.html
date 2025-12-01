@@ -1,145 +1,302 @@
 {% extends 'base.html' %}
-{% block title %}{{tea.name}} 詳細{% endblock %}
+
+{% block title %}{{ tea.name }} - お茶ショップ{% endblock %}
+
 {% block content %}
 <div class="container">
-<h1>{{ tea.name }}</h1>
-<img src="{{ tea.image.url }}" alt="{{ tea.name }}">
-<p>{{ tea.description }}</p>
-<div class="row">
-<div class="col-md-6">
-<h2>詳細情報</h2>
-<ul class="list-group">
-<li class="list-group-item">蒸し度: {{ tea.get_steam_type_display }}</li>
-<li class="list-group-item">産地: {{ tea.origin }}</li>
-{% if tea.caffeine_free %}
-<li class="list-group-item">カフェインレス: ✅</li>
-{% endif %}
-</ul>
-</div>
-</div>
+    <nav aria-label="breadcrumb" class="mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'published_tea_list' %}">お茶一覧</a></li>
+            <li class="breadcrumb-item active">{{ tea.name }}</li>
+        </ol>
+    </nav>
 
-<div class="mt-4">
-<div class="row">
-      {% if user.is_authenticated %}
-        {% if tea.is_favorited %}
-<form method="post" action="{% url 'cancel_favorite_tea' tea.id %}" class="favorite-form" data-tea-id="{{ tea.id }}">
-{% csrf_token %}
-<button type="submit" class="btn btn-danger favorite-button">
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-suit-heart-fill" viewBox="0 0 16 16">
-<path d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1"></path>
-</svg>
-          お気に入り済み
-</button>
-</form>
-        {% else %}
-<form method="post" action="{% url 'add_favorite_tea' tea.id %}" class="favorite-form" data-tea-id="{{ tea.id }}">
-{% csrf_token %}
-<button type="submit" class="btn btn-outline-danger favorite-button">
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-suit-heart-fill" viewBox="0 0 16 16">
-<path d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1"></path>
-</svg>
-          お気に入りに追加
-</button>
-</form>
-        {% endif %}
-      {% endif %}
-<div>
-<span class="like-count" data-tea-id="{{ tea.id }}">{{ tea.favorites_count }}</span> favorites
-</div>
-</div>
-</div>
+    <div class="row mt-4">
+        <!-- 左側：画像とお気に入り -->
+        <div class="col-md-6">
+            <!-- 画像を中央寄せ -->
+            <div class="d-flex justify-content-center mb-3">
+                {% if tea.image %}
+                <img src="{{ tea.image.url }}" class="img-fluid rounded shadow" alt="{{ tea.name }}" style="max-width: 400px;">
+                {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center shadow" style="width: 400px; height: 400px;">
+                    <i class="bi bi-image text-muted" style="font-size: 6rem;"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- お気に入りボタン（幅を制限） -->
+            <div class="d-flex justify-content-center">
+                <div style="width: 400px; max-width: 100%;">
+                    {% if user.is_authenticated %}
+                        {% if tea.is_favorited %}
+                        <form method="post" action="{% url 'cancel_favorite_tea' tea.id %}" class="favorite-form" data-tea-id="{{ tea.id }}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger favorite-button w-100">
+                                <i class="bi bi-suit-heart-fill"></i> お気に入り済み
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'add_favorite_tea' tea.id %}" class="favorite-form" data-tea-id="{{ tea.id }}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger favorite-button w-100">
+                                <i class="bi bi-suit-heart"></i> お気に入りに追加
+                            </button>
+                        </form>
+                        {% endif %}
+                        <div class="text-center mt-2">
+                            <span class="like-count" data-tea-id="{{ tea.id }}">{{ tea.favorites_count }}</span> favorites
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> お気に入りに追加するには<a href="{% url 'authentication:login' %}">ログイン</a>してください
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右側：商品情報 -->
+        <div class="col-md-6">
+            <h1 class="display-5 mb-3">{{ tea.name }}</h1>
+            
+            <div class="mb-3">
+                <span class="badge bg-info fs-6 me-2">{{ tea.get_steam_type_display }}</span>
+                {% if tea.caffeine_free %}
+                <span class="badge bg-success fs-6">カフェインレス</span>
+                {% endif %}
+            </div>
+
+            {% if tea.origin %}
+            <p class="lead text-muted">
+                <i class="bi bi-geo-alt-fill"></i> {{ tea.origin }}
+            </p>
+            {% endif %}
+
+            <hr>
+
+            <div class="mb-4">
+                <h5>商品説明</h5>
+                <p>{{ tea.description|linebreaks }}</p>
+            </div>
+
+            <hr>
+
+            <h5 class="mb-3">購入オプション</h5>
+            
+            {% if products %}
+                {% for product in products %}
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <h5 class="mb-0 fw-bold">{{ product.weight }}g</h5>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-0 text-muted">
+                                    <small>税抜: ¥{{ product.price|floatformat:0 }}</small>
+                                </p>
+                                <p class="mb-0 fs-4 text-success fw-bold">
+                                    税込: ¥{{ product.get_price_with_tax|floatformat:0 }}
+                                </p>
+                                <small class="text-muted">
+                                    在庫: 
+                                    {% if product.stock > 0 %}
+                                        <span class="text-success">{{ product.stock }}個</span>
+                                    {% else %}
+                                        <span class="text-danger">在庫切れ</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="col-md-5">
+                                {% if user.is_authenticated %}
+                                    {% if product.stock > 0 %}
+                                    <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="add-to-cart-form">
+                                        {% csrf_token %}
+                                        <div class="input-group mb-2">
+                                            <input type="number" name="quantity" class="form-control text-center quantity-input" 
+                                                   value="1" min="1" max="{{ product.stock }}" 
+                                                   data-product-id="{{ product.id }}" style="max-width: 80px;">
+                                        </div>
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="bi bi-cart-plus"></i> カートに追加
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-secondary w-100" disabled>
+                                        在庫切れ
+                                    </button>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-info mb-0 p-2 small">
+                                        購入するには<a href="{% url 'authentication:login' %}">ログイン</a>してください
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> 現在この商品は販売しておりません
+                </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{% url 'published_tea_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> お茶一覧に戻る
+                </a>
+            </div>
+        </div>
+    </div>
 
 <!-- レビューセクション -->
 <div class="mt-5">
-<h2>レビュー</h2>
-
-<!-- レビューフォーム -->
-{% if user.is_authenticated %}
-  {% if not user_has_reviewed %}
-<div class="card mb-4">
-<div class="card-body">
-<h5 class="card-title">レビューを投稿する</h5>
-<form method="post" action="{% url 'add_review' tea.id %}">
-{% csrf_token %}
-<div class="mb-3">
-<label for="{{ review_form.rating.id_for_label }}" class="form-label">{{ review_form.rating.label }}</label>
-{{ review_form.rating }}
-</div>
-<div class="mb-3">
-<label for="{{ review_form.content.id_for_label }}" class="form-label">{{ review_form.content.label }}</label>
-{{ review_form.content }}
-</div>
-<button type="submit" class="btn btn-primary">投稿する</button>
-</form>
-</div>
-</div>
-  {% else %}
-<div class="alert alert-info">
-      このお茶には既にレビューを投稿済みです。
-</div>
-  {% endif %}
-{% else %}
-<div class="alert alert-warning">
-    レビューを投稿するには<a href="{% url 'signin' %}">ログイン</a>してください。
-</div>
-{% endif %}
-
-<!-- レビュー一覧 -->
-<div class="mt-4">
-<h3>レビュー一覧 ({{ reviews.count }}件)</h3>
-      {% if reviews %}
-        {% for review in reviews %}
-<div class="card mb-3">
-<div class="card-body">
-<div class="d-flex justify-content-between">
-<h5 class="card-title">{{ review.user.nickname|default:review.user.username }}</h5>
-<small class="text-muted">{{ review.created_at|date:"Y年m月d日" }}</small>
-</div>
-<div class="mb-2">
-<span class="text-warning">{{ review.get_star_display }}</span>
-</div>
-<p class="card-text">{{ review.content }}</p>
-</div>
-</div>
-        {% endfor %}
-      {% else %}
-<p class="text-muted">まだレビューがありません。最初のレビューを投稿してみませんか？</p>
-      {% endif %}
-</div>
-</div>
-
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const forms = document.querySelectorAll('.favorite-form');
+    <h2>レビュー</h2>
     
-    // CSRFトークンを取得する関数
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
+    <!-- レビューフォーム -->
+    {% if user.is_authenticated %}
+      {% if not user_has_reviewed %}
+    <div class="card mb-4">
+    <div class="card-body">
+    <h5 class="card-title">レビューを投稿する</h5>
+    <form method="post" action="{% url 'add_review' tea.id %}">
+    {% csrf_token %}
+    <div class="mb-3">
+    <label for="{{ review_form.rating.id_for_label }}" class="form-label">{{ review_form.rating.label }}</label>
+    {{ review_form.rating }}
+    </div>
+    <div class="mb-3">
+    <label for="{{ review_form.content.id_for_label }}" class="form-label">{{ review_form.content.label }}</label>
+    {{ review_form.content }}
+    </div>
+    <button type="submit" class="btn btn-primary">投稿する</button>
+    </form>
+    </div>
+    </div>
+      {% else %}
+    <div class="alert alert-info">
+          このお茶には既にレビューを投稿済みです。
+    </div>
+      {% endif %}
+    {% else %}
+    <div class="alert alert-warning">
+        レビューを投稿するには<a href="{% url 'signin' %}">ログイン</a>してください。
+    </div>
+    {% endif %}
+    
+    <!-- レビュー一覧 -->
+    <div class="mt-4">
+    <h3>レビュー一覧 ({{ reviews.count }}件)</h3>
+          {% if reviews %}
+            {% for review in reviews %}
+    <div class="card mb-3">
+    <div class="card-body">
+    <div class="d-flex justify-content-between">
+    <h5 class="card-title">{{ review.user.nickname|default:review.user.username }}</h5>
+    <small class="text-muted">{{ review.created_at|date:"Y年m月d日" }}</small>
+    </div>
+    <div class="mb-2">
+    <span class="text-warning">{{ review.get_star_display }}</span>
+    </div>
+    <p class="card-text">{{ review.content }}</p>
+    </div>
+    </div>
+            {% endfor %}
+          {% else %}
+    <p class="text-muted">まだレビューがありません。最初のレビューを投稿してみませんか？</p>
+          {% endif %}
+    </div>
+    </div>
+    
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// CSRFトークンを取得する関数
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
         }
-        return cookieValue;
     }
-    
-    const csrftoken = getCookie('csrftoken');
-    
-    forms.forEach(form => {
+    return cookieValue;
+}
+
+const csrftoken = getCookie('csrftoken');
+
+// 数量の増減ボタン
+document.addEventListener('DOMContentLoaded', function() {
+    // カートに追加フォームの送信
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const teaId = form.dataset.teaId;
             const formData = new FormData(form);
-            const url = form.action;
-            const button = form.querySelector('.favorite-button');
+            const button = form.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            // ボタンを無効化
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>追加中...';
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 成功時の処理
+                    button.innerHTML = '<i class="bi bi-check-circle"></i> 追加しました！';
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-primary');
+                    
+                    // 2秒後に元に戻す
+                    setTimeout(() => {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn-primary');
+                        button.classList.add('btn-success');
+                        
+                        // ページをリロードしてカートのバッジを更新
+                        location.reload();
+                    }, 1500);
+                } else {
+                    throw new Error('カートへの追加に失敗しました');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('エラーが発生しました。もう一度お試しください。');
+                button.disabled = false;
+                button.innerHTML = originalText;
+            });
+        });
+    });
+
+    // お気に入りフォーム
+    const favoriteForm = document.querySelector('.favorite-form');
+    if (favoriteForm) {
+        favoriteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const teaId = favoriteForm.dataset.teaId;
+            const formData = new FormData(favoriteForm);
+            const url = favoriteForm.action;
+            const button = favoriteForm.querySelector('.favorite-button');
             const likeCount = document.querySelector(`.like-count[data-tea-id="${teaId}"]`);
             
             fetch(url, {
@@ -154,25 +311,19 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     // いいね数を更新
-                    likeCount.textContent = data.favorites_count;
+                    if (likeCount) {
+                        likeCount.textContent = data.favorites_count;
+                    }
                     
                     // ボタンの表示を切り替え
                     if (data.is_favorited) {
-                        button.className = 'btn btn-danger favorite-button';
-                        button.innerHTML = `
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-suit-heart-fill" viewBox="0 0 16 16">
-<path d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1"></path>
-</svg>
-                        お気に入り済み`;
-                        form.action = data.cancel_url;
+                        button.className = 'btn btn-danger favorite-button w-100';
+                        button.innerHTML = '<i class="bi bi-suit-heart-fill"></i> お気に入り済み';
+                        favoriteForm.action = data.cancel_url;
                     } else {
-                        button.className = 'btn btn-outline-danger favorite-button';
-                        button.innerHTML = `
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-suit-heart-fill" viewBox="0 0 16 16">
-<path d="M4 1c2.21 0 4 1.755 4 3.92C8 2.755 9.79 1 12 1s4 1.755 4 3.92c0 3.263-3.234 4.414-7.608 9.608a.513.513 0 0 1-.784 0C3.234 9.334 0 8.183 0 4.92 0 2.755 1.79 1 4 1"></path>
-</svg>
-                        お気に入りに追加`;
-                        form.action = data.add_url;
+                        button.className = 'btn btn-outline-danger favorite-button w-100';
+                        button.innerHTML = '<i class="bi bi-suit-heart"></i> お気に入りに追加';
+                        favoriteForm.action = data.add_url;
                     }
                 }
             })
@@ -180,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error:', error);
             });
         });
-    });
+    }
 });
 </script>
 {% endblock %}

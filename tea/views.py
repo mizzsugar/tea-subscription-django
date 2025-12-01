@@ -55,8 +55,9 @@ def published_tea_detail(request, tea_id: int):
     
     tea = get_object_or_404(queryset)
 
-    # レビュー一覧を取得
+    products = tea.products.filter(is_available=True)
     reviews = tea.reviews.select_related('user').all()
+    
     
     # ユーザーが既にレビュー済みかチェック
     user_has_reviewed = False
@@ -76,6 +77,7 @@ def published_tea_detail(request, tea_id: int):
         'reviews': reviews,
         'user_has_reviewed': user_has_reviewed,
         'review_form': review_form,
+        'products': products,
     })
 
 
