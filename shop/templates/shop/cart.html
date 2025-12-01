@@ -36,9 +36,6 @@
                                 {% csrf_token %}
                                 <div class="input-group input-group-sm">
                                     <input type="number" name="quantity" class="form-control" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}">
-                                    <button type="submit" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -47,7 +44,7 @@
                             <form method="post" action="{% url 'shop:remove_cart_item' item.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="bi bi-trash"></i>
+                                    削除
                                 </button>
                             </form>
                         </div>
