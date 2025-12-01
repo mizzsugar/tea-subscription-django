@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}お茶一覧{% endblock %}
+{% block title %}お茶一覧 - お茶ショップ{% endblock %}
 {% block content %}
 <div class="container">
 <h1 class="mt-5">お茶一覧</h1>
@@ -8,9 +8,32 @@
 <div class="col-md-4">
 <div class="card mb-4 shadow-sm">
 <div class="card-body">
-<h5 class="card-title">{{ tea.name }}</h5>
-<p class="card-text">{{ tea.description }}</p>
+
 <img src="{{ tea.image.url }}" alt="{{ tea.name }}" class="card-img-top">
+<h5 class="card-title">{{ tea.name }}</h5>
+<div class="mb-2">
+    <span class="badge bg-info">{{ tea.get_steam_type_display }}</span>
+    {% if tea.caffeine_free %}
+    <span class="badge bg-success">カフェインレス</span>
+    {% endif %}
+</div>
+{% if tea.origin %}
+<p class="text-muted small mb-2">
+    <i class="bi bi-geo-alt"></i> {{ tea.origin }}
+</p>
+{% endif %}
+<p class="card-text">{{ tea.description|truncatewords:20 }}</p>
+<div class="mb-2">
+    <strong>販売価格:</strong>
+    <div class="mt-1">
+        {% for product in tea.products.all %}
+        <span class="badge bg-secondary me-1">
+            {{ product.weight }}g: ¥{{ product.price|floatformat:0 }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="d-flex justify-content-between">
 <div><a href="{% url 'published_tea_detail' tea.id %}" class="btn btn-success">詳細を見る</a></div>
 <div>

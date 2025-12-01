@@ -12,8 +12,11 @@ from tea.forms import ReviewForm
 
 def published_tea_list(request):
     now = timezone.now()
-    teas = Tea.objects.filter(published_at__isnull=False, published_at__lt=now).\
-        annotate(favorites_count=Count('favorited_by'))
+    teas = Tea.objects.filter(
+        published_at__isnull=False,
+        published_at__lt=now,
+        products__is_available=True
+    ).distinct().prefetch_related('products').annotate(favorites_count=Count('favorited_by'))
     
     # ログイン中のユーザーがいいねしているかをアノテーション
     if request.user.is_authenticated:
@@ -52,8 +55,9 @@ def published_tea_detail(request, tea_id: int):
     
     tea = get_object_or_404(queryset)
 
-    # レビュー一覧を取得
+    products = tea.products.filter(is_available=True)
     reviews = tea.reviews.select_related('user').all()
+    
     
     # ユーザーが既にレビュー済みかチェック
     user_has_reviewed = False
@@ -73,6 +77,7 @@ def published_tea_detail(request, tea_id: int):
         'reviews': reviews,
         'user_has_reviewed': user_has_reviewed,
         'review_form': review_form,
+        'products': products,
     })
 
 
