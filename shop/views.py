@@ -14,20 +14,6 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 @login_required
-def product_list(request):
-    """商品一覧"""
-    teas = Tea.objects.filter(
-        published_at__isnull=False,
-        products__is_available=True
-    ).distinct().prefetch_related('products')
-    
-    context = {
-        'teas': teas,
-    }
-    return render(request, 'shop/product_list.html', context)
-
-
-@login_required
 def product_detail(request, tea_id):
     """商品詳細"""
     tea = get_object_or_404(Tea, id=tea_id, published_at__isnull=False)
@@ -138,7 +124,7 @@ def checkout(request):
     
     if not cart_items:
         messages.warning(request, 'カートが空です')
-        return redirect('shop:product_list')
+        return redirect('published_tea_list')
     
     # 在庫チェック
     for item in cart_items:

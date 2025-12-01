@@ -12,8 +12,11 @@ from tea.forms import ReviewForm
 
 def published_tea_list(request):
     now = timezone.now()
-    teas = Tea.objects.filter(published_at__isnull=False, published_at__lt=now).\
-        annotate(favorites_count=Count('favorited_by'))
+    teas = Tea.objects.filter(
+        published_at__isnull=False,
+        published_at__lt=now,
+        products__is_available=True
+    ).distinct().prefetch_related('products').annotate(favorites_count=Count('favorited_by'))
     
     # ログイン中のユーザーがいいねしているかをアノテーション
     if request.user.is_authenticated:

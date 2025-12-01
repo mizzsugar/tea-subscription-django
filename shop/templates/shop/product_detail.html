@@ -6,7 +6,7 @@
 <div class="container">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'shop:product_list' %}">商品一覧</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'published_tea_list' %}">商品一覧</a></li>
             <li class="breadcrumb-item active">{{ tea.name }}</li>
         </ol>
     </nav>
@@ -91,7 +91,7 @@
             {% endfor %}
 
             <div class="mt-4">
-                <a href="{% url 'shop:product_list' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'published_tea_list' %}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> 商品一覧に戻る
                 </a>
             </div>
