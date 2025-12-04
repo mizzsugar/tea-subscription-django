@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.db.models import Count, Exists, OuterRef
 from model.models import Tea, FavoriteTea, TeaReview
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST, require_GET
 from django.http import JsonResponse
 from django.urls import reverse
 from django.contrib import messages
@@ -10,6 +11,7 @@ from django.db.models import Count, Exists, OuterRef, Value, BooleanField
 from tea.forms import ReviewForm
 
 
+@require_GET
 def published_tea_list(request):
     now = timezone.now()
     teas = Tea.objects.filter(
@@ -34,6 +36,7 @@ def published_tea_list(request):
     return render(request, 'tea/published_tea_list.html', {'teas': teas})
 
 
+@require_GET
 def published_tea_detail(request, tea_id: int):
     """お茶詳細ページ"""
     now = timezone.now()
@@ -83,6 +86,7 @@ def published_tea_detail(request, tea_id: int):
 
 
 @login_required
+@require_POST
 def add_favorite_tea(request, tea_id):
     """お気に入りに追加"""
     if request.method == 'POST':
@@ -106,6 +110,7 @@ def add_favorite_tea(request, tea_id):
 
 
 @login_required
+@require_POST
 def cancel_favorite_tea(request, tea_id):
     """お気に入りを解除"""
     if request.method == 'POST':
@@ -129,6 +134,7 @@ def cancel_favorite_tea(request, tea_id):
 
 
 @login_required
+@require_POST
 def add_review(request, tea_id):
     """お茶のレビューをする"""
     form = ReviewForm(request.POST)

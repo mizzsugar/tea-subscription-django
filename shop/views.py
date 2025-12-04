@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.contrib import messages
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
@@ -52,9 +52,10 @@ def add_to_cart(request, product_id):
 
 
 @login_required
+@require_GET
 def cart_view(request):
     """カート表示"""
-    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.select_related('product__tea').all()
     
     context = {
@@ -104,6 +105,7 @@ def remove_cart_item(request, item_id):
 
 
 @login_required
+@require_GET
 def checkout(request):
     """チェックアウト画面"""
     cart = get_object_or_404(Cart, user=request.user)
@@ -125,10 +127,8 @@ def checkout(request):
     context = {
         'cart': cart,
         'cart_items': cart_items,
-        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,  # これを追加
+        'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,
     }
-    print('=============')
-    print(context)
     return render(request, 'shop/checkout.html', context)
 
 
@@ -236,6 +236,7 @@ def create_checkout_session(request):
 
 
 @login_required
+@require_GET
 def payment_success(request):
     """支払い成功"""
     session_id = request.GET.get('session_id')
@@ -273,6 +274,7 @@ def payment_success(request):
 
 
 @login_required
+@require_GET
 def payment_cancel(request):
     """支払いキャンセル"""
     order_id = request.GET.get('order_id')
@@ -322,6 +324,7 @@ def stripe_webhook(request):
 
 
 @login_required
+@require_GET
 def order_list(request):
     """注文履歴"""
     orders = Order.objects.filter(user=request.user).prefetch_related('items__product__tea')
@@ -333,6 +336,7 @@ def order_list(request):
 
 
 @login_required
+@require_GET
 def order_detail(request, order_id):
     """注文詳細"""
     order = get_object_or_404(
