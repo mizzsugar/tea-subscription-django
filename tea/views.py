@@ -18,9 +18,10 @@ def published_tea_list(request):
         published_at__isnull=False,
         published_at__lt=now,
         products__is_available=True
-    ).distinct().prefetch_related('products').annotate(favorites_count=Count('favorited_by'))
+    ).distinct().prefetch_related('products').annotate(
+        favorites_count=Count('favorited_by', distinct=True)
+    )
     
-    # ログイン中のユーザーがいいねしているかをアノテーション
     if request.user.is_authenticated:
         user_favorite = FavoriteTea.objects.filter(
             user=request.user,
@@ -28,7 +29,6 @@ def published_tea_list(request):
         )
         teas = teas.annotate(is_favorited=Exists(user_favorite))
     else:
-        # ログインしていない場合はすべてFalse
         teas = teas.annotate(
             is_favorited=Value(False, output_field=BooleanField())
         )
