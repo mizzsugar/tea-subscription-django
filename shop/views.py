@@ -1,5 +1,3 @@
-# shop/views.py
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
@@ -9,7 +7,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from model.models import (
-    Tea, TeaProduct, Cart, CartItem, Order, OrderItem
+    TeaProduct, Cart, CartItem, Order, OrderItem
 )
 from .forms import AddToCartForm, UpdateCartItemForm, CheckoutForm
 import stripe

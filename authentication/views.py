@@ -1,3 +1,4 @@
+import logging
 import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate, logout
@@ -7,6 +8,9 @@ from authentication.forms import GeneralUserRegistrationForm, EmailAuthenticatio
 from .utils import send_verification_email
 from django.db import IntegrityError
 from model.models import User
+
+logger = logging.getLogger(__name__)
+
 
 def signup(request):
     """一般ユーザー登録"""
@@ -44,7 +48,7 @@ def signup(request):
                         )
                         return redirect('signup_complete')
                     except Exception as e:
-                        # メール送信失敗時も同じメッセージ
+                        logger.info(e)
                         messages.success(
                             request, 
                             '登録ありがとうございます。確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。'
@@ -73,7 +77,7 @@ def signup(request):
                         )
                         return redirect('signup_complete')
                     except Exception as e:
-                        # メール送信失敗時はユーザーを削除
+                        logger.info(e)
                         user.delete()
                         messages.error(request, '登録処理中にエラーが発生しました。しばらくしてから再度お試しください。')
                         return render(request, 'authentication/signup.html', {'form': form})

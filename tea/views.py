@@ -1,6 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
-from django.db.models import Count, Exists, OuterRef
 from model.models import Tea, FavoriteTea, TeaReview
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_GET
