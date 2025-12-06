@@ -15,24 +15,58 @@
                     <h5 class="mb-0">配送先情報</h5>
                 </div>
                 <div class="card-body">
-                    <form id="checkout-form">
+                    <form method="post">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="shipping_name" class="form-label">お名前 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="shipping_name" name="shipping_name" required>
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
                         </div>
+                        {% endif %}
+                        
                         <div class="mb-3">
-                            <label for="shipping_postal_code" class="form-label">郵便番号 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="shipping_postal_code" name="shipping_postal_code" placeholder="123-4567" required>
+                            <label for="{{ form.shipping_name.id_for_label }}" class="form-label">
+                                {{ form.shipping_name.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.shipping_name }}
+                            {% if form.shipping_name.errors %}
+                            <div class="text-danger small">{{ form.shipping_name.errors.0 }}</div>
+                            {% endif %}
                         </div>
+                        
                         <div class="mb-3">
-                            <label for="shipping_address" class="form-label">住所 <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="shipping_address" name="shipping_address" rows="3" required></textarea>
+                            <label for="{{ form.shipping_postal_code.id_for_label }}" class="form-label">
+                                {{ form.shipping_postal_code.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.shipping_postal_code }}
+                            {% if form.shipping_postal_code.errors %}
+                            <div class="text-danger small">{{ form.shipping_postal_code.errors.0 }}</div>
+                            {% endif %}
                         </div>
+                        
                         <div class="mb-3">
-                            <label for="shipping_phone" class="form-label">電話番号 <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="shipping_phone" name="shipping_phone" placeholder="090-1234-5678" required>
+                            <label for="{{ form.shipping_address.id_for_label }}" class="form-label">
+                                {{ form.shipping_address.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.shipping_address }}
+                            {% if form.shipping_address.errors %}
+                            <div class="text-danger small">{{ form.shipping_address.errors.0 }}</div>
+                            {% endif %}
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.shipping_phone.id_for_label }}" class="form-label">
+                                {{ form.shipping_phone.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.shipping_phone }}
+                            {% if form.shipping_phone.errors %}
+                            <div class="text-danger small">{{ form.shipping_phone.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100 btn-lg">
+                            <i class="bi bi-lock-fill"></i> Stripeで支払う
+                        </button>
                     </form>
                 </div>
             </div>
@@ -62,12 +96,22 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>小計:</span>
-                        <span>¥{{ cart.total_amount|floatformat:0 }}</span>
+                        <span>小計（税抜）:</span>
+                        <span>¥{{ cart.subtotal|floatformat:0 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>消費税:</span>
+                        <span>¥{{ cart.tax_amount|floatformat:0 }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>送料:</span>
-                        <span>無料</span>
+                        <span>
+                            {% if cart.shipping_fee == 0 %}
+                            無料
+                            {% else %}
+                            ¥{{ cart.shipping_fee|floatformat:0 }}
+                            {% endif %}
+                        </span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-3">
@@ -75,85 +119,12 @@
                         <strong class="text-success fs-4">¥{{ cart.total_amount|floatformat:0 }}</strong>
                     </div>
 
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Stripeで安全にお支払いいただけます
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle"></i> Stripeの安全な決済ページに移動します
                     </div>
-
-                    <button id="checkout-button" class="btn btn-success w-100 btn-lg">
-                        <i class="bi bi-lock-fill"></i> Stripeで支払う
-                    </button>
-                    
-                    <div id="error-message" class="alert alert-danger mt-3 d-none"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded'); // これが表示されるか確認
-    
-    const stripe = Stripe('{{ STRIPE_PUBLIC_KEY }}');
-    const checkoutButton = document.getElementById('checkout-button');
-    const checkoutForm = document.getElementById('checkout-form');
-    const errorMessage = document.getElementById('error-message');
-    
-    console.log('checkoutButton:', checkoutButton); // ボタンが取得できているか確認
-    console.log('checkoutForm:', checkoutForm); // フォームが取得できているか確認
-    
-    if (!checkoutButton) {
-        console.error('Checkout button not found!');
-        return;
-    }
-    
-    checkoutButton.addEventListener('click', async () => {
-        console.log('Button clicked!');
-        
-        if (!checkoutForm.checkValidity()) {
-            console.log('Form invalid');
-            checkoutForm.reportValidity();
-            return;
-        }
-
-        checkoutButton.disabled = true;
-        checkoutButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>処理中...';
-
-        const formData = new FormData(checkoutForm);
-        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        try {
-            const response = await fetch("{% url 'shop:create_checkout_session' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                },
-                body: formData,
-            });
-
-            const data = await response.json();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            const result = await stripe.redirectToCheckout({
-                sessionId: data.sessionId
-            });
-
-            if (result.error) {
-                throw new Error(result.error.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            errorMessage.textContent = error.message;
-            errorMessage.classList.remove('d-none');
-            checkoutButton.disabled = false;
-            checkoutButton.innerHTML = '<i class="bi bi-lock-fill"></i> Stripeで支払う';
-        }
-    });
-});
-</script>
 {% endblock %}
