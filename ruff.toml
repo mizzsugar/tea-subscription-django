@@ -1,0 +1,29 @@
+line-length = 88
+
+# 除外するファイル・ディレクトリ
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+    ".ruff_cache",
+    "migrations",
+    "*/migrations/*",
+    "manage.py",
+    "*/settings.py",
+    "*/asgi.py",
+    "*/wsgi.py",
+    "*/apps.py",
+]
+
+# ルールセット
+[lint]
+select = ["E", "F", "W", "I", "N"]
+ignore = ["E501"]
+
+# フォーマット設定
+[format]
+quote-style = "double"
+indent-style = "space"
