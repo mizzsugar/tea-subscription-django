@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
-from decimal import Decimal
 from config import settings
 
 
@@ -101,6 +100,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = "ユーザー"
         verbose_name_plural = "ユーザー"
+        db_table = "users"
 
     def __str__(self):
         return self.nickname or self.username or self.email
@@ -134,9 +134,6 @@ class User(AbstractUser):
             return True
         expiry_time = self.email_verification_sent_at + timedelta(hours=24)
         return timezone.now() < expiry_time
-
-    class Meta:
-        db_table = "users"
 
 
 class Tea(models.Model):
@@ -175,12 +172,11 @@ class FavoriteTea(models.Model):
         unique_together = ("user", "tea")  # 同じお茶を重複登録できないように
         verbose_name = "お気に入り"
         verbose_name_plural = "お気に入り一覧"
+        db_table = "favorite_teas"
 
     def __str__(self):
         return f"{self.user} → {self.tea}"
 
-    class Meta:
-        db_table = "favorite_teas"
 
 
 class TeaReview(models.Model):
