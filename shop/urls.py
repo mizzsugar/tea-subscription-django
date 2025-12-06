@@ -9,7 +9,6 @@ urlpatterns = [
     path('cart/update/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
     path('cart/remove/<int:item_id>/', views.remove_cart_item, name='remove_cart_item'),
     path('checkout/', views.checkout, name='checkout'),
-    path('checkout/create-session/', views.create_checkout_session, name='create_checkout_session'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
     path('webhook/stripe/', views.stripe_webhook, name='stripe_webhook'),

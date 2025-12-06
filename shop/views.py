@@ -1,14 +1,19 @@
+# shop/views.py
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.contrib import messages
 from django.conf import settings
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
+from model.models import (
+    Tea, TeaProduct, Cart, CartItem, Order, OrderItem
+)
+from .forms import AddToCartForm, UpdateCartItemForm, CheckoutForm
 import stripe
 import uuid
-from model.models import Tea, TeaProduct,CartItem, Cart, Order, OrderItem, TaxRate
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -18,45 +23,72 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def add_to_cart(request, product_id):
     """カートに追加"""
     product = get_object_or_404(TeaProduct, id=product_id, is_available=True)
-    quantity = int(request.POST.get('quantity', 1))
+    form = AddToCartForm(request.POST, product=product)
     
-    if quantity < 1:
-        messages.error(request, '数量は1以上を指定してください')
+    if form.is_valid():
+        quantity = form.cleaned_data['quantity']
+        
+        # カートを取得または作成
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        
+        # カートアイテムを取得または作成
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product,
+            defaults={'quantity': quantity}
+        )
+        
+        if not created:
+            # 既存のアイテムの場合は数量を追加
+            new_quantity = cart_item.quantity + quantity
+            if product.stock < new_quantity:
+                error_message = f'在庫が不足しています（在庫: {product.stock}個、カート内: {cart_item.quantity}個）'
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'error': error_message}, status=400)
+                messages.error(request, error_message)
+                return redirect('published_tea_detail', tea_id=product.tea.id)
+            
+            cart_item.quantity = new_quantity
+            cart_item.save()
+        
+        # AJAX リクエストの場合はJSON を返す
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'cart_count': cart.item_count,
+                'message': 'カートに追加しました'
+            })
+        
+        messages.success(request, 'カートに追加しました')
+        return redirect('shop:cart')
+    else:
+        # バリデーションエラー
+        error_messages = []
+        for field, errors in form.errors.items():
+            for error in errors:
+                error_messages.append(error)
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'error': '、'.join(error_messages)
+            }, status=400)
+        
+        for error in error_messages:
+            messages.error(request, error)
         return redirect('published_tea_detail', tea_id=product.tea.id)
-    
-    if product.stock < quantity:
-        messages.error(request, '在庫が不足しています')
-        return redirect('published_tea_detail', tea_id=product.tea.id)
-    
-    # カートを取得または作成
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    
-    # カートアイテムを取得または作成
-    cart_item, created = CartItem.objects.get_or_create(
-        cart=cart,
-        product=product,
-        defaults={'quantity': quantity}
-    )
-    
-    if not created:
-        # 既存のアイテムの場合は数量を追加
-        new_quantity = cart_item.quantity + quantity
-        if product.stock < new_quantity:
-            messages.error(request, '在庫が不足しています')
-            return redirect('published_tea_detail', tea_id=product.tea.id)
-        cart_item.quantity = new_quantity
-        cart_item.save()
-    
-    messages.success(request, 'カートに追加しました')
-    return redirect('shop:cart')
 
 
 @login_required
 @require_GET
 def cart_view(request):
     """カート表示"""
-    cart, _ = Cart.objects.get_or_create(user=request.user)
+    cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.select_related('product__tea').all()
+    
+    # 各カートアイテムに更新フォームを追加
+    for item in cart_items:
+        item.form = UpdateCartItemForm(cart_item=item)
     
     context = {
         'cart': cart,
@@ -74,18 +106,17 @@ def update_cart_item(request, item_id):
         id=item_id, 
         cart__user=request.user
     )
-    quantity = int(request.POST.get('quantity', 1))
     
-    if quantity < 1:
-        cart_item.delete()
-        messages.success(request, 'カートから削除しました')
+    form = UpdateCartItemForm(request.POST, cart_item=cart_item)
+    
+    if form.is_valid():
+        quantity = form.cleaned_data['quantity']
+        cart_item.quantity = quantity
+        cart_item.save()
+        messages.success(request, '数量を更新しました')
     else:
-        if cart_item.product.stock < quantity:
-            messages.error(request, '在庫が不足しています')
-        else:
-            cart_item.quantity = quantity
-            cart_item.save()
-            messages.success(request, '数量を更新しました')
+        for error in form.errors.get('quantity', []):
+            messages.error(request, error)
     
     return redirect('shop:cart')
 
@@ -105,7 +136,7 @@ def remove_cart_item(request, item_id):
 
 
 @login_required
-@require_GET
+@require_http_methods(["GET", "POST"])
 def checkout(request):
     """チェックアウト画面"""
     cart = get_object_or_404(Cart, user=request.user)
@@ -113,7 +144,7 @@ def checkout(request):
     
     if not cart_items:
         messages.warning(request, 'カートが空です')
-        return redirect('published_tea_list')
+        return redirect('shop:product_list')
     
     # 在庫チェック
     for item in cart_items:
@@ -124,43 +155,41 @@ def checkout(request):
             )
             return redirect('shop:cart')
     
+    if request.method == 'POST':
+        form = CheckoutForm(request.POST)
+        if form.is_valid():
+            # Stripe Checkout Sessionを作成する処理を直接ここで実行
+            return create_checkout_session_internal(request, cart, cart_items, form.cleaned_data)
+    else:
+        # セッションにデータがあれば初期値として設定
+        initial_data = request.session.get('checkout_data', {})
+        form = CheckoutForm(initial=initial_data)
+    
     context = {
         'cart': cart,
         'cart_items': cart_items,
+        'form': form,
         'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY,
     }
     return render(request, 'shop/checkout.html', context)
 
 
-@login_required
-@require_POST
-def create_checkout_session(request):
-    """Stripe Checkout Sessionを作成"""
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_items = cart.items.select_related('product__tea').all()
-    
-    if not cart_items:
-        return JsonResponse({'error': 'カートが空です'}, status=400)
-    
-    # 配送先情報を取得
-    shipping_data = {
-        'shipping_name': request.POST.get('shipping_name'),
-        'shipping_postal_code': request.POST.get('shipping_postal_code'),
-        'shipping_address': request.POST.get('shipping_address'),
-        'shipping_phone': request.POST.get('shipping_phone'),
-    }
-    tax_rate = TaxRate.get_current_rate()
-    
-    # 注文を作成（金額フィールドに初期値を設定）
+def create_checkout_session_internal(request, cart, cart_items, checkout_data):
+    """Stripe Checkout Sessionを作成（内部関数）"""
+    # 注文を作成（金額フィールドは後で設定）
     order = Order.objects.create(
         user=request.user,
         order_number=f'ORD-{uuid.uuid4().hex[:12].upper()}',
+        shipping_name=checkout_data['shipping_name'],
+        shipping_postal_code=checkout_data['shipping_postal_code'],
+        shipping_address=checkout_data['shipping_address'],
+        shipping_phone=checkout_data['shipping_phone'],
+        # 一時的にデフォルト値を設定
         subtotal=0,
         tax_amount=0,
-        total_amount=0,
         shipping_fee=0,
-        tax_rate=tax_rate,
-        **shipping_data
+        total_amount=0,
+        tax_rate=0,
     )
     
     # 注文明細を作成
@@ -169,7 +198,7 @@ def create_checkout_session(request):
             order=order,
             product=cart_item.product,
             quantity=cart_item.quantity,
-            price=cart_item.product.price,
+            price=cart_item.product.price  # 税抜価格を保存
         )
     
     # 金額を計算（注文明細作成後に実行）
@@ -228,11 +257,17 @@ def create_checkout_session(request):
         order.stripe_checkout_session_id = checkout_session.id
         order.save()
         
-        return JsonResponse({'sessionId': checkout_session.id})
+        # セッションデータをクリア
+        if 'checkout_data' in request.session:
+            del request.session['checkout_data']
+        
+        # Stripeの支払いページにリダイレクト
+        return redirect(checkout_session.url)
         
     except Exception as e:
         order.delete()
-        return JsonResponse({'error': str(e)}, status=400)
+        messages.error(request, f'エラーが発生しました: {str(e)}')
+        return redirect('shop:checkout')
 
 
 @login_required
@@ -309,16 +344,19 @@ def stripe_webhook(request):
         order_id = session['metadata'].get('order_id')
         
         if order_id:
-            order = Order.objects.get(id=order_id)
-            order.status = 'paid'
-            order.stripe_payment_intent_id = session.get('payment_intent')
-            order.save()
-            
-            # 在庫を減らす
-            for item in order.items.all():
-                product = item.product
-                product.stock -= item.quantity
-                product.save()
+            try:
+                order = Order.objects.get(id=order_id)
+                order.status = 'paid'
+                order.stripe_payment_intent_id = session.get('payment_intent')
+                order.save()
+                
+                # 在庫を減らす
+                for item in order.items.all():
+                    product = item.product
+                    product.stock -= item.quantity
+                    product.save()
+            except Order.DoesNotExist:
+                pass
     
     return HttpResponse(status=200)
 
